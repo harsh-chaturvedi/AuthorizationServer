@@ -1,2 +1,6 @@
 AuthorizationServer.App/bin
 AuthorizationServer.App/obj
+AuthorizationServer.ClientApp/bin/
+AuthorizationServer.ClientApp/obj/
+AuthorizationServer.ClientApp/appsettings.Development.json
+AuthorizationServer.App/appsettings.Development.json

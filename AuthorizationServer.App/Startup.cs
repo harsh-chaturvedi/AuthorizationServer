@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -24,6 +25,16 @@ namespace AuthorizationServer.App
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+
+            services.AddIdentityServer()
+                .AddInMemoryClients(new List<Client>())
+                .AddInMemoryIdentityResources(new List<IdentityResource>())
+                .AddInMemoryApiResources(new List<ApiResource>())
+                .AddInMemoryApiScopes(new List<ApiScope>())
+                .AddTestUsers(new List<IdentityServer4.Test.TestUser>())
+                .AddDeveloperSigningCredential();
+
+            services.AddMvc(options => options.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,11 +56,19 @@ namespace AuthorizationServer.App
 
             app.UseRouting();
 
+            app.UseIdentityServer();
+            
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+            // app.UseEndpoints(endpoints =>
+            // {
+            //     endpoints.MapRazorPages();
+            // });
+
+            app.UseMvc(routeBuilder =>
             {
-                endpoints.MapRazorPages();
+                routeBuilder.MapRoute(name: "default", template: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }
