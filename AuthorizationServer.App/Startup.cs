@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using AuthorizationServer.Infrastructure.Database;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 namespace AuthorizationServer.App
 {
@@ -19,20 +24,46 @@ namespace AuthorizationServer.App
             Configuration = configuration;
         }
 
+        string migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddRazorPages();
 
+            services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\""
+                });
+
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+
+                });
+                options.OperationFilter<Swashbuckle.AspNetCore.Filters.SecurityRequirementsOperationFilter>();
+            });
+
+            services.AddDbContext<ApplicationDbContext>(builder =>
+                builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
+
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
             services.AddIdentityServer()
-                .AddInMemoryClients(new List<Client>())
-                .AddInMemoryIdentityResources(new List<IdentityResource>())
-                .AddInMemoryApiResources(new List<ApiResource>())
-                .AddInMemoryApiScopes(new List<ApiScope>())
-                .AddTestUsers(new List<IdentityServer4.Test.TestUser>())
-                .AddDeveloperSigningCredential();
+                .AddAspNetIdentity<IdentityUser>()
+                .AddDeveloperSigningCredential()
+                .AddOperationalStore(options => options.ConfigureDbContext =
+                    builder => builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                .AddConfigurationStore(options => options.ConfigureDbContext =
+                    builder => builder.UseSqlServer(connectionString, SqlOptions => SqlOptions.MigrationsAssembly(migrationsAssembly)));
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
         }
@@ -51,13 +82,19 @@ namespace AuthorizationServer.App
                 app.UseHsts();
             }
 
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Authorization Server Integration API v1");
+            });
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
 
             app.UseIdentityServer();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
 
