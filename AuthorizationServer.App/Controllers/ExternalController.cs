@@ -1,3 +1,4 @@
+using AuthorizationServer.Infrastructure.Model;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Events;
@@ -22,7 +23,7 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class ExternalController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly ILogger<ExternalController> _logger;
@@ -33,7 +34,7 @@ namespace IdentityServerHost.Quickstart.UI
             IClientStore clientStore,
             IEventService events,
             ILogger<ExternalController> logger,
-            UserManager<IdentityUser> userManager)
+            UserManager<ApplicationUser> userManager)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
@@ -144,7 +145,7 @@ namespace IdentityServerHost.Quickstart.UI
             return Redirect(returnUrl);
         }
 
-        private (IdentityUser user, string provider, string providerUserId, IEnumerable<Claim> claims) FindUserFromExternalProvider(AuthenticateResult result)
+        private (ApplicationUser user, string provider, string providerUserId, IEnumerable<Claim> claims) FindUserFromExternalProvider(AuthenticateResult result)
         {
             var externalUser = result.Principal;
 
@@ -168,10 +169,10 @@ namespace IdentityServerHost.Quickstart.UI
             return (user, provider, providerUserId, claims);
         }
 
-        private IdentityUser AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
+        private ApplicationUser AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
         {
             // create dummy internal account (you can do something more complex)
-            var user = new IdentityUser(Guid.NewGuid().ToString());
+            var user = new ApplicationUser(Guid.NewGuid().ToString());
             var operation = _userManager.CreateAsync(user).Result;
 
             // add external user ID to new account

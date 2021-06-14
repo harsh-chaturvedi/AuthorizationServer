@@ -30,19 +30,21 @@ namespace AuthorizationServer.ClientApp
             var clientSecret = Configuration["ClientSecret"];
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "cookie";
+                options.DefaultScheme = "cookies";
                 options.DefaultChallengeScheme = "oidc";
             })
-            .AddCookie()
             .AddOpenIdConnect("oidc", options =>
             {
+                options.CallbackPath = "/signin-oidc";
                 options.Authority = authority;
                 options.ClientId = clientId;
                 options.ClientSecret = clientSecret;
                 options.ResponseType = "code";
                 options.ResponseMode = "query";
                 options.SaveTokens = true;
-            });
+                // options.Scope = new string[] { "openid" };
+            })
+            .AddCookie("cookies");
             services.AddControllersWithViews();
         }
 
