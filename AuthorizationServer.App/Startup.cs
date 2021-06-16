@@ -39,6 +39,8 @@ namespace AuthorizationServer.App
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddRazorPages();
 
+            services.AddCors();
+
             services.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -99,6 +101,8 @@ namespace AuthorizationServer.App
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Authorization Server Integration API v1");
             });
+
+            app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

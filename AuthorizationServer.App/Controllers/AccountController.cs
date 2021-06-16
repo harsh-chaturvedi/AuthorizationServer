@@ -186,10 +186,10 @@ namespace IdentityServerHost.Quickstart.UI
         /// Show logout page
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> Logout(string logoutId)
+        public async Task<IActionResult> Logout(string logoutId, string ReturnUri)
         {
             // build a model so the logout page knows what to display
-            var vm = await BuildLogoutViewModelAsync(logoutId);
+            var vm = await BuildLogoutViewModelAsync(logoutId, ReturnUri);
 
             if (vm.ShowLogoutPrompt == false)
             {
@@ -230,6 +230,11 @@ namespace IdentityServerHost.Quickstart.UI
 
                 // this triggers a redirect to the external provider for sign-out
                 return SignOut(new AuthenticationProperties { RedirectUri = url }, vm.ExternalAuthenticationScheme);
+            }
+
+            if (!string.IsNullOrEmpty(model.ReturnUri))
+            {
+                return Redirect(model.ReturnUri);
             }
 
             return View("LoggedOut", vm);
@@ -311,9 +316,9 @@ namespace IdentityServerHost.Quickstart.UI
             return vm;
         }
 
-        private async Task<LogoutViewModel> BuildLogoutViewModelAsync(string logoutId)
+        private async Task<LogoutViewModel> BuildLogoutViewModelAsync(string logoutId, string ReturnUri)
         {
-            var vm = new LogoutViewModel { LogoutId = logoutId, ShowLogoutPrompt = AccountOptions.ShowLogoutPrompt };
+            var vm = new LogoutViewModel { LogoutId = logoutId, ShowLogoutPrompt = AccountOptions.ShowLogoutPrompt, ReturnUri = ReturnUri };
 
             if (User?.Identity.IsAuthenticated != true)
             {

@@ -6,3 +6,6 @@ AuthorizationServer.Infrastructure/bin/
 AuthorizationServer.Infrastructure/obj/
 AuthorizationServer.ClientApp/appsettings.Development.json
 AuthorizationServer.App/appsettings.Development.json
+AuthorizationServer.Angular/bin/
+AuthorizationServer.Angular/obj/
+AuthorizationServer.Angular/appsettings.Development.json/
